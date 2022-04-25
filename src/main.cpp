@@ -15,6 +15,16 @@ Distributed as-is; no warranty is given.
 #include <mcp2515.h>
 #include <mcp2515_defs.h>
 
+#include "utils.h"
+
+using namespace Utils;
+
+int i1 = 0;
+float f2 = 190;
+float f3 = 12.59;
+float f4 = 13.8;
+float f5 = 64.55;
+
 //********************************Setup Loop*********************************//
 
 void setup()
@@ -32,22 +42,16 @@ void setup()
 }
 
 //********************************Main Loop*********************************//
-int i1 = 0;
-int i2 = 54;
-int i3 = 12;
-int i4 = 80;
-int i5 = 64;
+
+
 int timer = 0;
 void loop()
 {
   tCAN message;
 
-  message.id = 0x1; // formatted in HEX
-  message.header.rtr = 0;
-  message.header.length = 2; // formatted in DEC
-  message.data[1] = i1;
-  message.data[0] = i1 >> 8;
+  message = makeInt16Message(0x1, i1);
 
+  ////// FRAME 1 - RPM
   i1 += 51;
   if (i1 > 12000)
   {
@@ -56,65 +60,58 @@ void loop()
   mcp2515_bit_modify(CANCTRL, (1 << REQOP2) | (1 << REQOP1) | (1 << REQOP0), 0);
   mcp2515_send_message(&message);
   delay(10);
+
+
+  //// FRAME 2 - COOLANT
   if (timer % 20 == 0)
   {
     tCAN message2;
 
-    message2.id = 0x2; // formatted in HEX
-    message2.header.rtr = 0;
-    message2.header.length = 2; // formatted in DEC
-    message2.data[1] = i2;
-    message2.data[0] = i2 >> 8;
-    i2 = random(0, 6) + 54;
+    message2 = makeFloatMessage(0x2, f2);
+
+    f2 = random(-100, 100) / 50.0 + 190.0;
 
     mcp2515_bit_modify(CANCTRL, (1 << REQOP2) | (1 << REQOP1) | (1 << REQOP0), 0);
     mcp2515_send_message(&message2);
   }
   delay(10);
 
+  ////// FRAME 3 - VOLTAGE
   if (timer % 20 == 0)
   {
     tCAN message3;
 
-    message3.id = 0x3; // formatted in HEX
-    message3.header.rtr = 0;
-    message3.header.length = 2; // formatted in DEC
-    message3.data[1] = i3;
-    message3.data[0] = i3 >> 8;
-    i3 = random(-1, 1) + 12;
+    message3 = makeFloatMessage(0x3, f3);
+
+    f3 = random(-5, 5) / 10.0 + 12.5;
 
     mcp2515_bit_modify(CANCTRL, (1 << REQOP2) | (1 << REQOP1) | (1 << REQOP0), 0);
     mcp2515_send_message(&message3);
   }
   delay(10);
 
+  ///// FRAME 4 - AFR
   if (timer % 20 == 0)
   {
     tCAN message4;
 
-    message4.id = 0x4; // formatted in HEX
-    message4.header.rtr = 0;
-    message4.header.length = 2; // formatted in DEC
-    message4.data[1] = i4;
-    message4.data[0] = i4 >> 8;
-    i4 = random(0, 5) + 80;
+    message4 = makeFloatMessage(0x4,f4);
+
+    f4 = random(0, 10) / 100.0 + 13.8;
 
     mcp2515_bit_modify(CANCTRL, (1 << REQOP2) | (1 << REQOP1) | (1 << REQOP0), 0);
     mcp2515_send_message(&message4);
   }
   delay(10);
 
+  //// FRAME 5 - BIAS DATA
   if (timer % 20 == 0)
   {
     tCAN message5;
 
-    message5.id = 0x5; // formatted in HEX
-    message5.header.rtr = 0;
-    message5.header.length = 2; // formatted in DEC
-    message5.data[1] = i5;
-    message5.data[0] = i5 >> 8;
+    message5 = makeFloatMessage(5, f5);
 
-    i5 = random(-1, 1) + 64;
+    f5 = random(0, 4) / 6.0 + 64.0;
     mcp2515_bit_modify(CANCTRL, (1 << REQOP2) | (1 << REQOP1) | (1 << REQOP0), 0);
     mcp2515_send_message(&message5);
   }
